@@ -1,0 +1,25 @@
+from tradingapi_a.mconnect import MConnect
+
+# ========= CONFIG =========
+API_KEY = ""
+
+# Access Token पढ़ो
+with open("access_token.txt", "r") as f:
+    ACCESS_TOKEN = f.read().strip()
+
+m = MConnect()
+
+# Session सेट करो
+m.set_access_token(API_KEY, ACCESS_TOKEN)
+
+# NIFTY और SENSEX LTP
+symbols = [
+    "NSE:NIFTY 50",
+    "BSE:SENSEX"
+]
+
+try:
+    response = m.get_ltp(symbols)
+    print(response.text)
+except Exception as e:
+    print("ERROR:", e)

@@ -1,0 +1,141 @@
+):
+    """
+    Build live combinations using the same indicator
+    and price-action naming used by historical research.
+    """
+
+    # PRIMARY: 5M indicator + 5M price action.
+    # This allows live direction to react faster to genuine reversals.
+    combinations_5m = get_combinations(
+        state_5m
+    )
+
+    combinations_5m_pa = get_price_action_combinations(
+        combinations_5m,
+        pa_state_5m,
+    )
+    for name, direction in combinations_5m_pa.items():
+        if direction in ("BULLISH", "BEARISH"):
+            return name, direction
+
+    # FALLBACK: 5M + 15M cross-timeframe confirmation.
+    # Used when no valid 5M + PA direction is available.
+    cross = cross_timeframe_combinations(
+        state_5m,
+        state_15m,
+    )
+
+    cross_pa = get_price_action_combinations(
+        cross,
+        pa_state_5m,
+    )
+
+    for name, direction in cross_pa.items():
+        if direction in ("BULLISH", "BEARISH"):
+            return name, direction
+
+    return "NO_VALID_COMBINATION", "NEUTRAL"
+
+def build_live_spot_context(
+    api,
+    index_name,
+    live_5m=None,
+    live_15m=None,
+):
+    if index_name not in CONFIG:
+        raise ValueError(
+            f"Unsupported index: {index_name}"
+        )
+
+    rows_5m, rows_15m = get_cached_historical_rows(
+        api,
+        index_name,
+    )
+
+    # Merge current live candles with historical data.
+    # Historical API may not contain today's intraday candles.
+    if live_5m:
+        rows_5m = merge_live_candle(
+            rows_5m,
+            live_5m,
+        )
+
+    if live_15m:
+        rows_15m = merge_live_candle(
+            rows_15m,
+            live_15m,
+        )
+
+    if not rows_5m or not rows_15m:
+        return {
+            "valid": False,
+            "reason": "NO_CANDLE_DATA",
+        }
+
+    candles_5m = prepare_candles(rows_5m)
+    candles_15m = prepare_candles(rows_15m)
+
+    if len(candles_5m) < 50 or len(candles_15m) < 50:
+        return {
+            "valid": False,
+            "reason": "INSUFFICIENT_CANDLES",
+        }
+
+    states_5m = build_indicator_states(candles_5m)
+    states_15m = build_indicator_states(candles_15m)
+
+    state_5m = states_5m[-1]
+    state_15m = states_15m[-1]
+
+    pa_states_5m = build_price_action_states(
+        candles_5m
+    )
+    pa_state_5m = pa_states_5m[-1]
+
+    context_5m = calculate_context(rows_5m)
+    context_15m = calculate_context(rows_15m)
+
+    regime = detect_local_regime(
+        candles_5m,
+        len(candles_5m) - 1,
+        lookback=12,
+    )
+
+    combination, direction = choose_live_combination(
+        state_5m,
+        state_15m,
+        pa_state_5m,
+    )
+
+    return {
+        "valid": direction in ("BULLISH", "BEARISH"),
+        "index": index_name,
+        "regime": regime,
+        "direction": direction,
+        "combination": combination,
+        "context_5m": context_5m,
+        "context_15m": context_15m,
+        "state_5m": state_5m,
+        "state_15m": state_15m,
+        "pa_state_5m": pa_state_5m,
+        "spot_close": candles_5m[-1]["close"],
+    }
+
+
+# ============================================================
+# LIVE CANDLE MERGE SUPPORT
+# ============================================================
+
+def live_candle_to_row(candle):
+    """
+    Convert LiveCandleBuilder candle dict into the same
+    row format used by historical research:
+    [time, open, high, low, close, volume]
+    """
+
+    if not candle:
+        return None
+
+    return [
+        candle["timestamp"],
+        candle["open"],

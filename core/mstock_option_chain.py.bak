@@ -1,0 +1,31 @@
+from tradingapi_a.mconnect import MConnect
+
+API_KEY = "0I9xsJEBJ+a0Gc5iw7Fz7PGU153rvhvaOdUUoA01lC0="
+
+TOKEN_FILE = "/home/ec2-user/OptionFlowAI/access_token.txt"
+
+
+def get_option_chain(
+    exchange="2",
+    expiry="8",      # फिलहाल working expiry ID
+    token="26000",
+):
+    with open(TOKEN_FILE) as f:
+        access_token = f.read().strip()
+
+    api = MConnect(
+        api_key=API_KEY,
+        access_Token=access_token,
+    )
+
+    response = api.get_option_chain_data(
+        exchange,
+        expiry,
+        token,
+    )
+
+    return response.text
+    
+
+if __name__ == "__main__":
+    print(get_option_chain())

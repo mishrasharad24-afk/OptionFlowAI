@@ -1,0 +1,28 @@
+
+==========================================================================================
+INDEX: NIFTY
+DATE : 2026-07-09
+SPOT CANDLES: 75
+CURVE SIGNALS: 3
+
+SIGNAL 2026-07-09T13:55:00+05:30 | PE | SPOT 24050.05 | ATM 24050 | OPTION NIFTY2672124050PE | ENTRY 205.6
+ NEXT 1 | MFE 3.62 % | MAE 1.09 %
+ NEXT 3 | MFE 7.39 % | MAE 1.09 %
+ NEXT 5 | MFE 7.39 % | MAE 1.75 %
+
+SIGNAL 2026-07-09T14:00:00+05:30 | PE | SPOT 24046.7 | ATM 24050 | OPTION NIFTY2672124050PE | ENTRY 209.45
+ NEXT 1 | MFE 1.31 % | MAE 0.29 %
+ NEXT 3 | MFE 5.42 % | MAE 3.56 %
+ NEXT 5 | MFE 5.42 % | MAE 3.56 %
+
+SIGNAL 2026-07-09T14:05:00+05:30 | PE | SPOT 24038.7 | ATM 24050 | OPTION NIFTY2672124050PE | ENTRY 212.05
+ NEXT 1 | MFE 4.13 % | MAE 1.82 %
+ NEXT 3 | MFE 4.13 % | MAE 4.74 %
+ NEXT 5 | MFE 4.13 % | MAE 7.59 %
+
+==========================================================================================
+INDEX: SENSEX
+DATE : 2026-07-09
+SPOT CANDLES: 75
+CURVE SIGNALS: 1
+ERROR SENSEX InputException Instrument token is not matching with the security id in exchange file.

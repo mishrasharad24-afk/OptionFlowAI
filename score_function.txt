@@ -1,0 +1,194 @@
+def calculate_final_decision_score(
+    primary_edge,
+    edge_5m,
+    edge_15m,
+    regime,
+    direction,
+    combination,
+    previous_context,
+open_context,
+market_phase,
+context_5m=None,
+context_15m=None,
+):
+    historical_score = (
+        edge_quality_score(
+            primary_edge
+        )
+    )
+
+    tf_agreement = (
+        calculate_timeframe_agreement(
+            edge_5m,
+            edge_15m,
+            direction,
+        )
+    )
+
+    regime_score = (
+        regime_match_score(
+            regime,
+            direction,
+        )
+    )
+
+    pa_score = (
+        price_action_match_score(
+            combination
+        )
+    )
+
+    previous_score = (
+        previous_day_alignment_score(
+            direction,
+            previous_context,
+            open_context,
+        )
+    )
+
+    weights = (
+        get_dynamic_timeframe_weights(
+            market_phase
+        )
+    )
+
+    score_5m = edge_quality_score(
+        edge_5m
+    )
+
+    score_15m = edge_quality_score(
+        edge_15m
+    )
+
+    timeframe_score = (
+        score_5m
+        * weights.get(
+            "5M",
+            0.0,
+        )
+        + score_15m
+        * weights.get(
+            "15M",
+            0.0,
+        )
+        + previous_score
+        * weights.get(
+            "PREVIOUS_DAY",
+            0.0,
+        )
+    )
+
+    final_score = (
+        historical_score * 0.40
+        + timeframe_score * 0.25
+        + tf_agreement[
+            "score"
+        ] * 0.15
+        + regime_score * 0.08
+        + pa_score * 0.07
+        + previous_score * 0.05
+    )
+
+    return {
+        "final_score": clamp(
+            final_score,
+            0.0,
+            100.0,
+        ),
+
+        "historical_score": (
+            historical_score
+        ),
+
+        "timeframe_score": (
+            timeframe_score
+        ),
+
+        "timeframe_agreement": (
+            tf_agreement
+        ),
+
+        "regime_score": (
+            regime_score
+        ),
+
+        "price_action_score": (
+            pa_score
+        ),
+
+        "previous_day_score": (
+            previous_score
+        ),
+    }
+
+
+# ============================================================
+# CONFIDENCE CLASSIFICATION
+# ============================================================
+
+def classify_confidence(
+    score,
+):
+    score = safe_float(
+        score
+    )
+
+    if (
+        score
+        >= HIGH_CONFIDENCE_SCORE
+    ):
+
+        return "HIGH"
+
+    if (
+        score
+        >= MEDIUM_CONFIDENCE_SCORE
+    ):
+
+        return "MEDIUM"
+
+    return "LOW"
+
+
+# ============================================================
+# TRADE ACTION
+# ============================================================
+
+def determine_trade_action(
+    final_score,
+    direction,
+    agreement_status,
+):
+    direction = normalize_direction(
+        direction
+    )
+
+    if (
+        agreement_status
+        == "CONFLICT"
+        and final_score
+        < HIGH_CONFIDENCE_SCORE
+    ):
+
+        return "WAIT"
+
+    if (
+        final_score
+        < MEDIUM_CONFIDENCE_SCORE
+    ):
+
+        return "WAIT"
+
+    if direction == "BULLISH":
+
+        return "CE"
+
+    if direction == "BEARISH":
+
+        return "PE"
+
+    return "WAIT"
+
+
+# ============================================================
+# FINAL AI DECISION

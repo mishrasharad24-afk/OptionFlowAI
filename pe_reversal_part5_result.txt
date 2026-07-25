@@ -1,0 +1,20 @@
+
+====================================================================================================
+PART 5 - PE REVERSAL EXPECTANCY RESEARCH
+SETUP: P4_BREAK_LOW_EMA_BEAR
+ENTRY: NEXT-CANDLE BEARISH CONFIRMATION CLOSE
+TARGET: 0.1 %
+STOP: 0.15 %
+HORIZONS: (5, 10, 15)
+UNRESOLVED: TIME EXIT AT FINAL AVAILABLE CANDLE CLOSE
+====================================================================================================
+CANDLES: 7951
+RAW SETUP SIGNALS: 283
+NEXT-CANDLE CONFIRMED ENTRIES: 144
+
+====================================================================================================
+PART 5 FINAL EXPECTANCY RESULTS
+====================================================================================================
+HORIZON 5 | TRADES 144 | TARGET_WINS 72 | SL_LOSSES 33 | TIME_EXITS 39 | TIME_POS 16 | TIME_NEG 23 | WIN_RATE_ALL 50.0 % | AVG_PNL 0.0112 % | TOTAL_PNL 1.6088 % | PROFIT_FACTOR 1.264
+HORIZON 10 | TRADES 144 | TARGET_WINS 77 | SL_LOSSES 45 | TIME_EXITS 22 | TIME_POS 9 | TIME_NEG 13 | WIN_RATE_ALL 53.47 % | AVG_PNL 0.0033 % | TOTAL_PNL 0.4745 % | PROFIT_FACTOR 1.063
+HORIZON 15 | TRADES 144 | TARGET_WINS 81 | SL_LOSSES 49 | TIME_EXITS 14 | TIME_POS 7 | TIME_NEG 7 | WIN_RATE_ALL 56.25 % | AVG_PNL 0.0041 % | TOTAL_PNL 0.5959 % | PROFIT_FACTOR 1.078

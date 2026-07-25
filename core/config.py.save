@@ -1,0 +1,57 @@
+# ==========================================================
+# OPTIONFLOW AI CONFIG
+# ==========================================================
+
+# ---------- TELEGRAM ----------
+
+TELEGRAM_BOT_TOKEN = "7705146253:AAGpL1cyzqL6_afWFGdrXGAU5M0Ku1VCFVM"
+
+TELEGRAM_CHAT_ID = "-1002519123618"
+
+
+# ---------- MSTOCK ----------
+
+USER_ID = "MA453644"
+
+PASSWORD = "Mahamaya123*
+
+API_KEY = "tCEplvPZd+y8Ki7Dr5S7qtZr8QO3Tb+uQkgjKcGZdtc=
+"
+SECRET_KEY = ""
+
+TOTP_SECRET = ""
+
+
+# ---------- RISK ----------
+
+MAX_RISK_PER_TRADE = 1.0
+
+MIN_CONFIDENCE = 80
+
+MAX_TRADES_PER_DAY = 5
+
+
+# ---------- OPTION ----------
+
+STRIKE_STEP = 100
+
+OPTION_RANGE = 2
+
+
+# ---------- AI ----------
+
+AI_NAME = "OPTIONFLOW AI"
+
+VERSION = "1.0"
+
+
+if __name__ == "__main__":
+
+    print("=" * 60)
+    print("CONFIG READY")
+    print("=" * 60)
+
+    print("AI :", AI_NAME)
+    print("Version :", VERSION)
+
+    print("=" * 60)
