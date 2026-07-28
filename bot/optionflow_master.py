@@ -5,6 +5,7 @@ from datetime import datetime, date
 
 from live_market_candle_engine import LiveMarketCandleEngine
 from ai_live_bridge import build_live_spot_context
+from candle_cache import load_intraday_cache
 from final_ai_decision_engine_v2 import (
     load_ai_edge_cache,
     make_ai_decision,
@@ -337,9 +338,13 @@ def scanner(token):
     # ===== LIVE AI ENGINE INIT =====
     live_candle_engine = LiveMarketCandleEngine()
     ai_edge_db = load_ai_edge_cache()
+    # ===== LIVE AI ENGINE INIT =====
+    live_candle_engine = LiveMarketCandleEngine()
+    ai_edge_db = load_ai_edge_cache()
     historical_api = load_api()
 
     # ===== LIVE OPTION CONFIRMATION ENGINE INIT =====
+    option_market = OptionMarketData()
     option_market = OptionMarketData()
 
     print("LIVE AI OBSERVATION ENGINE READY")
@@ -427,7 +432,7 @@ def scanner(token):
 
 
 
-        if False and now >= "15:30":
+        if now >= "15:30":
 
             send("🛑 3:30 PM BOT CLOSED")
 
@@ -471,26 +476,31 @@ def scanner(token):
                     spot,
                 )
 
+                save_live_candles(
+                    name,
+                    live_candles["current_5m"],
+                    live_candles["current_15m"],
+                )
+
                 ai_context = build_live_spot_context(
                     historical_api,
                     name,
                     live_5m=live_candles["current_5m"],
                     live_15m=live_candles["current_15m"],
-                )
+                )                
+
+
+                
 
                 if ai_context.get("valid"):
 
                     ai_decision = make_ai_decision(
-    edge_db=ai_edge_db,
-    regime=ai_context["regime"],
-    direction=ai_context["direction"],
-    combination=ai_context["combination"],
-    previous_day_candles=None,
-    current_price=spot,
-    current_time=datetime.now(),
-    context_5m=ai_context["context_5m"],
-    context_15m=ai_context["context_15m"],
-)
+                        edge_db=ai_edge_db,
+                        regime=ai_context["regime"],
+                        direction=ai_context["direction"],
+                        combination=ai_context["combination"],
+                        current_price=spot,
+                    )
 
                     ai_action = ai_decision.get("action", "WAIT")
                     ai_direction = ai_context.get("direction", "NEUTRAL")
@@ -1003,11 +1013,10 @@ def scanner(token):
 
 token=login()
 
-token = login()
-
 if token:
+
     print("BOT READY")
-    send("🤖 BOT READY\n✅ Login Successful\n🚀 OptionFlowAI Started")
+
     try:
         scanner(token)
 

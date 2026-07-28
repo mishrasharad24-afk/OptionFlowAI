@@ -2152,6 +2152,9 @@ def make_ai_decision(
     current_open=0.0,
     current_price=0.0,
     current_time=None,
+
+context_5m=None,
+context_15m=None,
 ):
     direction = normalize_direction(
         direction

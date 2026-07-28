@@ -1,0 +1,38 @@
+from pathlib import Path
+from threading import Lock
+
+from tradingapi_a import __config__
+from tradingapi_a.mticker import MTicker
+
+from config.settings import API_KEY, TOKEN_FILE
+
+
+class MStockWSV2:
+
+    def __init__(self):
+        self.ws = None
+        self.on_tick = None
+        self.lock = Lock()
+        self.tick_cache = {}
+
+    def connect(self):
+        pass
+
+    def on_connect(self, ws, response):
+        pass
+
+    def on_ticks(self, ws, ticks):
+        pass
+
+    def on_close(self, ws, code, reason):
+        print(f"WebSocket Closed : {code} {reason}")
+
+    def on_error(self, ws, code, reason):
+        print(f"WebSocket Error : {code} {reason}")
+
+    def subscribe(self, tokens):
+        pass
+
+    def stop(self):
+        pass
+

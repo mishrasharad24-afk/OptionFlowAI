@@ -4,6 +4,12 @@ from historical.multi_timeframe_research import (
     fetch_max_950,
     calculate_context,
 )
+from candle_cache import (
+    load_intraday_cache,
+    save_intraday_cache,
+    merge_intraday_history,
+)
+   
 
 from historical.market_regime_combination_research import detect_local_regime
 
@@ -171,6 +177,17 @@ def build_live_spot_context(
         index_name,
     )
 
+    cache = load_intraday_cache(index_name)
+
+    rows_5m = merge_intraday_history(
+        rows_5m,
+        cache["5M"],
+    )
+
+    rows_15m = merge_intraday_history(
+        rows_15m,
+        cache["15M"],
+    )
     # Merge current live candles with historical data.
     # Historical API may not contain today's intraday candles.
     if live_5m:

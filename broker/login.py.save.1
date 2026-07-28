@@ -1,0 +1,49 @@
+import json
+import os
+from tradingapi_a.mconnect import MConnect
+
+TOKEN_FILE = "token.json"
+
+# ====== CHANGE THESE ======
+USER_ID = "YOUR_USER_ID"
+PASSWORD = "YOUR_PASSWORD"
+API_KEY = ""
+# ==========================
+
+
+def login():
+    try:
+        api = MConnect()
+
+        print("Logging in...")
+        res = api.login(USER_ID, PASSWORD)
+        print(res.text)
+
+        otp = input("Enter OTP: ").strip()
+
+        session = api.generate_session(API_KEY, otp, "W")
+        print(session.text)
+
+        data = json.loads(session.text)
+
+        if data.get("status") == "success":
+            token = data["data"]["access_token"]
+
+            with open(TOKEN_FILE, "w") as f:
+                json.dump({"access_token": token}, f, indent=4)
+
+            print("Login Successful")
+            print("Access Token Saved")
+
+            return token
+
+        else:
+            print("Login Failed")
+            print(data)
+
+    except Exception as e:
+        print("ERROR:", e)
+
+
+if __name__ == "__main__":
+    login()

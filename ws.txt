@@ -1,0 +1,96 @@
+from pathlib import Path
+from threading import Lock
+
+from tradingapi_a import __config__
+from tradingapi_a.mticker import MTicker
+
+from config.settings import API_KEY, TOKEN_FILE
+
+
+class MStockWSV2:
+
+    def __init__(self):
+        self.ws = None
+        self.on_tick = None
+        self.lock = Lock()
+        self.tick_cache = {}
+        self.tokens = []
+
+    def connect(self):
+
+        token_file = Path(TOKEN_FILE)
+
+        if not token_file.exists():
+            raise FileNotFoundError(f"Access token not found: {token_file}")
+
+        access_token = token_file.read_text().strip()
+
+        self.ws = MTicker(
+            API_KEY,
+            access_token,
+            __config__.mticker_url
+        )
+
+        self.ws.on_connect = self.on_connect
+        self.ws.on_ticks = self.on_ticks
+        self.ws.on_close = self.on_close
+        self.ws.on_error = self.on_error
+
+        print("Connecting to m.Stock WebSocket...")
+
+        self.ws.connect()
+
+    def on_connect(self, ws, response):
+
+        print("✅ WebSocket Connected")
+
+        ws.send_login_after_connect()
+
+        if self.tokens:
+            ws.subscribe(self.tokens)
+            ws.set_mode(MTicker.MODE_FULL, self.tokens)
+
+    def on_ticks(self, ws, ticks):
+
+        with self.lock:
+
+            for tick in ticks:
+
+                token = str(
+                    tick.get("token")
+                    or tick.get("instrument_token")
+                    or ""
+                )
+
+                if token:
+                    self.tick_cache[token] = tick
+
+                if self.on_tick:
+                    try:
+                        self.on_tick(tick)
+                    except Exception as e:
+                        print(e)
+
+    def on_close(self, ws, code, reason):
+        print(f"WebSocket Closed : {code} {reason}")
+
+    def on_error(self, ws, code, reason):
+        print(f"WebSocket Error : {code} {reason}")
+
+    def subscribe(self, tokens):
+
+        self.tokens = [str(x) for x in tokens]
+
+        if self.ws:
+
+            self.ws.subscribe(self.tokens)
+            self.ws.set_mode(MTicker.MODE_FULL, self.tokens)
+
+    def stop(self):
+
+        if self.ws:
+            try:
+                self.ws.close()
+            except Exception:
+                pass
+

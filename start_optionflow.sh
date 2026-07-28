@@ -9,7 +9,7 @@ echo "OPTION FLOW AI STARTUP"
 echo "=========================================="
 
 echo "Starting m.Stock OTP Login..."
-python core/mstock_login.py
+python broker/login.py
 
 if [ $? -ne 0 ]; then
     echo "LOGIN SCRIPT FAILED"

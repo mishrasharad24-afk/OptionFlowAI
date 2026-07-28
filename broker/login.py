@@ -1,56 +1,49 @@
-import logging
-import requests
+import json
+import os
+from tradingapi_a.mconnect import MConnect
 
-from config.settings import BASE_URL, API_VERSION, LOGIN_URL
-from config.credentials import API_KEY
+TOKEN_FILE = "token.json"
+
+# ====== CHANGE THESE ======
+USER_ID = "MA453644"
+PASSWORD = "Mahamaya123@"
+API_KEY = "0I9xsJEBJ+a0Gc5iw7Fz7PGU153rvhvaOdUUoA01lC0="
+# ==========================
 
 
-logging.basicConfig(
-    filename="logs/login.log",
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s"
-)
+def login():
+    try:
+        api = MConnect()
+
+        print("Logging in...")
+        res = api.login(USER_ID, PASSWORD)
+        print(res.text)
+
+        otp = input("Enter OTP: ").strip()
+
+        session = api.generate_session(API_KEY, otp, "W")
+        print(session.text)
+
+        data = json.loads(session.text)
+
+        if data.get("status") == "success":
+            token = data["data"]["access_token"]
+
+            with open(TOKEN_FILE, "w") as f:
+                json.dump({"access_token": token}, f, indent=4)
+
+            print("Login Successful")
+            print("Access Token Saved")
+
+            return token
+
+        else:
+            print("Login Failed")
+            print(data)
+
+    except Exception as e:
+        print("ERROR:", e)
 
 
-class BrokerLogin:
-
-    def __init__(self):
-        self.access_token = None
-
-    def login(self, otp):
-
-        headers = {
-            "X-Mirae-Version": API_VERSION,
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-
-        payload = {
-            "api_key": API_KEY,
-            "totp": otp.strip()
-        }
-
-        try:
-            response = requests.post(
-                BASE_URL + LOGIN_URL,
-                headers=headers,
-                data=payload,
-                timeout=20
-            )
-
-            data = response.json()
-
-            if data.get("status") != "success":
-                logging.error(data)
-                print(data)
-                return None
-
-            self.access_token = data["data"]["access_token"]
-
-            logging.info("LOGIN SUCCESS")
-
-            return self.access_token
-
-        except Exception as e:
-            logging.exception(str(e))
-            print(e)
-            return None
+if __name__ == "__main__":
+    login()

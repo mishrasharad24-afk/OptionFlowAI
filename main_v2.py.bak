@@ -1,0 +1,213 @@
+"""
+OptionFlowAI V2
+main_v2.py
+"""
+
+from __future__ import annotations
+
+import logging
+import signal
+import sys
+import time
+
+from core.mstock_session import MStockSession
+from core.mstock_ws_v2 import MStockWSV2
+
+from candle_engine_v2 import engine
+from market_structure_v2 import structure
+from option_flow_v2 import option_flow
+from ai_engine_v2 import ai
+from trade_manager_v2 import trade_manager
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+logger = logging.getLogger("OptionFlowAI")
+
+
+running = True
+
+
+def shutdown(sig=None, frame=None):
+    global running
+    logger.info("Stopping OptionFlowAI...")
+    running = False
+
+
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
+
+
+class OptionFlowAI:
+
+    def __init__(
+        self,
+        user_id,
+        password,
+        api_key,
+        secret_key,
+        totp_secret,
+    ):
+
+        self.session = MStockSession(
+            user_id=user_id,
+            password=password,
+            api_key=api_key,
+            secret_key=secret_key,
+            totp_secret=totp_secret,
+        )
+
+        self.api = None
+        self.ws = None
+
+    def login(self):
+
+        logger.info("Logging into m.Stock...")
+
+        self.api = self.session.login()
+
+        logger.info("Login Successful")
+
+    def connect(self):
+
+        self.ws = MStockWSV2(self.api)
+
+        self.ws.on_tick = self.on_tick
+
+        self.ws.connect()
+
+        logger.info("WebSocket Connected")
+    def on_tick(self, tick):
+
+        try:
+
+            token = str(
+                tick.get("token")
+                or tick.get("instrument_token")
+                or ""
+            )
+
+            if not token:
+                return
+
+            ltp = float(
+                tick.get("ltp")
+                or tick.get("last_price")
+                or 0
+            )
+
+            volume = int(
+                tick.get("volume")
+                or 0
+            )
+
+            oi = int(
+                tick.get("oi")
+                or 0
+            )
+
+            engine.update_tick(
+                token,
+                ltp,
+                volume
+            )
+
+            option_flow.update(
+                token,
+                ltp,
+                volume,
+                oi
+            )
+
+            engine.finalize()
+
+            candles = engine.get_history(
+                token,
+                10
+            )
+
+            ms = structure.analyze(
+                candles
+            )
+
+            option_signal = option_flow.signal(
+                token,
+                token
+            )
+
+            decision = ai.decide(
+                ms,
+                option_signal
+            )
+
+            action = decision["action"]
+
+            if action in (
+                "BUY_CE",
+                "BUY_PE",
+            ):
+
+                if trade_manager.can_enter():
+
+                    trade_manager.enter(
+                        action,
+                        ltp
+                    )
+
+                    logger.info(
+                        "%s | %.2f | %s%%",
+                        action,
+                        ltp,
+                        decision["confidence"]
+                    )
+
+        except Exception as e:
+
+            logger.exception(e)
+    def run(self):
+
+        self.login()
+
+        self.connect()
+
+        logger.info("OptionFlowAI V2 Started")
+
+        while running:
+
+            try:
+
+                time.sleep(1)
+
+            except KeyboardInterrupt:
+
+                break
+
+        logger.info("OptionFlowAI Stopped")
+
+
+def main():
+
+    USER_ID = "YOUR_USER_ID"
+    PASSWORD = "YOUR_PASSWORD"
+    API_KEY = "YOUR_API_KEY"
+    SECRET_KEY = "YOUR_SECRET_KEY"
+    TOTP_SECRET = "YOUR_TOTP_SECRET"
+
+    bot = OptionFlowAI(
+        user_id=USER_ID,
+        password=PASSWORD,
+        api_key=API_KEY,
+        secret_key=SECRET_KEY,
+        totp_secret=TOTP_SECRET,
+    )
+
+    bot.run()
+
+
+if __name__ == "__main__":
+
+    main()
+
