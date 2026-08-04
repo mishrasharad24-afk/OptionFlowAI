@@ -1,15 +1,12 @@
+from intraday_cache_manager import merge_with_historical
+
+
 from historical.multi_timeframe_research import (
     CONFIG,
     TIMEFRAMES,
     fetch_max_950,
     calculate_context,
 )
-from candle_cache import (
-    load_intraday_cache,
-    save_intraday_cache,
-    merge_intraday_history,
-)
-   
 
 from historical.market_regime_combination_research import detect_local_regime
 
@@ -129,22 +126,7 @@ def choose_live_combination(
     and price-action naming used by historical research.
     """
 
-    # PRIMARY: 5M indicator + 5M price action.
-    # This allows live direction to react faster to genuine reversals.
-    combinations_5m = get_combinations(
-        state_5m
-    )
-
-    combinations_5m_pa = get_price_action_combinations(
-        combinations_5m,
-        pa_state_5m,
-    )
-    for name, direction in combinations_5m_pa.items():
-        if direction in ("BULLISH", "BEARISH"):
-            return name, direction
-
-    # FALLBACK: 5M + 15M cross-timeframe confirmation.
-    # Used when no valid 5M + PA direction is available.
+    # Prefer 5M + 15M indicator agreement.
     cross = cross_timeframe_combinations(
         state_5m,
         state_15m,
@@ -156,6 +138,20 @@ def choose_live_combination(
     )
 
     for name, direction in cross_pa.items():
+        if direction in ("BULLISH", "BEARISH"):
+            return name, direction
+
+    # Fallback to 5M indicator + price action.
+    combinations_5m = get_combinations(
+        state_5m
+    )
+
+    combinations_5m_pa = get_price_action_combinations(
+        combinations_5m,
+        pa_state_5m,
+    )
+
+    for name, direction in combinations_5m_pa.items():
         if direction in ("BULLISH", "BEARISH"):
             return name, direction
 
@@ -176,18 +172,19 @@ def build_live_spot_context(
         api,
         index_name,
     )
-
-    cache = load_intraday_cache(index_name)
-
-    rows_5m = merge_intraday_history(
+    rows_5m = merge_with_historical(
         rows_5m,
-        cache["5M"],
+        index_name,
+        "5M",
     )
 
-    rows_15m = merge_intraday_history(
+    rows_15m = merge_with_historical(
         rows_15m,
-        cache["15M"],
+        index_name,
+        "15M",
     )
+
+
     # Merge current live candles with historical data.
     # Historical API may not contain today's intraday candles.
     if live_5m:
