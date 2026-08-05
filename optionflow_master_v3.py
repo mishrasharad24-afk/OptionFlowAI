@@ -1477,6 +1477,7 @@ def scanner(token):
                     and ce_no_chase
                     and ai_direction == "BULLISH"
                     and ce_score >= 70
+                    and option_confirmation.get("confirmed", False)
                     and not (
                         ai_action == "WAIT"
                         and ai_confidence == "LOW"
@@ -1524,6 +1525,7 @@ def scanner(token):
                     and pe_no_chase
                     and ai_direction == "BEARISH"
                     and pe_score >= 70
+                    and option_confirmation.get("confirmed", False)
                     and not (
                         ai_action == "WAIT"
                         and ai_confidence == "LOW"
