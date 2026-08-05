@@ -967,16 +967,8 @@ def scanner(token):
                     memory[name]["pe_flow_count"] - 1,
                 )
 
-            # Normal entry
-            ce_flow_confirmed = memory[name]["ce_flow_count"] >= 2
-            pe_flow_confirmed = memory[name]["pe_flow_count"] >= 2
 
-            # Fast-move entry
-            ce_fast_confirmed = (
-                memory[name]["ce_flow_count"] >= 2
-                and ce_score >= 100
-                and ce_move > 2
-            )
+            
 
             pe_fast_confirmed = (
                 memory[name]["pe_flow_count"] >= 2
