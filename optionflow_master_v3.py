@@ -499,9 +499,9 @@ def scanner(token):
 
 
 
-        if now >= "15:30":
+        if now >= "15:50":
 
-            send("🛑 3:30 PM BOT CLOSED")
+            send("🛑 3:50 PM BOT CLOSED")
 
             break
 
