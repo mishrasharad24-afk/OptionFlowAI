@@ -517,7 +517,6 @@ def scanner(token):
             today_history = history_engine.get(market_symbol)
 
 
-            # ===== SAFE AI STATE =====
             ai_action = "WAIT"
             ai_direction = "NEUTRAL"
             stable_direction = memory[name].get(
@@ -595,6 +594,8 @@ def scanner(token):
                 name,
                 candles_5m
             )
+            # ===== SAFE AI STATE =====
+
 
 
 
