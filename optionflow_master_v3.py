@@ -1069,6 +1069,9 @@ def scanner(token):
                     (
                         current_trade == "CE"
                         and ai_direction == "BULLISH"
+                    and ai_action == "CE"
+                    and ai_confidence in ("MEDIUM", "HIGH")
+
                         and ai_action == "CE"
                         and ai_confidence in ("MEDIUM", "HIGH")
                         and ai_score >= 60
@@ -1079,6 +1082,9 @@ def scanner(token):
                     (
                         current_trade == "PE"
                         and ai_direction == "BEARISH"
+                    and ai_action == "PE"
+                    and ai_confidence in ("MEDIUM", "HIGH")
+
                         and ai_action == "PE"
                         and ai_confidence in ("MEDIUM", "HIGH")
                         and ai_score >= 60
